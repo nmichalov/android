@@ -65,6 +65,7 @@ import javax.inject.Inject;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -320,7 +321,7 @@ public class PreviewImageActivity extends FileActivity implements
 
         IntentFilter filter = new IntentFilter(FileDownloader.getDownloadFinishMessage());
         filter.addAction(FileDownloader.getDownloadAddedMessage());
-        registerReceiver(mDownloadFinishReceiver, filter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mDownloadFinishReceiver, filter);
     }
 
     @Override
@@ -331,7 +332,7 @@ public class PreviewImageActivity extends FileActivity implements
     @Override
     public void onPause() {
         if (mDownloadFinishReceiver != null){
-            unregisterReceiver(mDownloadFinishReceiver);
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(mDownloadFinishReceiver);
             mDownloadFinishReceiver = null;
         }
 
@@ -448,27 +449,22 @@ public class PreviewImageActivity extends FileActivity implements
 
                 OCFile file = getStorageManager().getFileByPath(downloadedRemotePath);
                 int position = mPreviewImagePagerAdapter.getFilePosition(file);
-                boolean downloadWasFine = intent.getBooleanExtra(
-                        FileDownloader.EXTRA_DOWNLOAD_RESULT, false);
+                boolean downloadWasFine = intent.getBooleanExtra(FileDownloader.EXTRA_DOWNLOAD_RESULT, false);
                 //boolean isOffscreen =  Math.abs((mViewPager.getCurrentItem() - position))
                 // <= mViewPager.getOffscreenPageLimit();
 
-                if (position >= 0 &&
-                        intent.getAction().equals(FileDownloader.getDownloadFinishMessage())) {
+                if (position >= 0 && intent.getAction().equals(FileDownloader.getDownloadFinishMessage())) {
                     if (downloadWasFine) {
                         mPreviewImagePagerAdapter.updateFile(position, file);
 
                     } else {
                         mPreviewImagePagerAdapter.updateWithDownloadError(position);
                     }
-                    mPreviewImagePagerAdapter.notifyDataSetChanged();   // will trigger the creation
-                                                                        // of new fragments
-
+                    mPreviewImagePagerAdapter.notifyDataSetChanged();   // will trigger the creation of new fragments
                 } else {
                     Log_OC.d(TAG, "Download finished, but the fragment is offscreen");
                 }
             }
-            removeStickyBroadcast(intent);
         }
     }
 

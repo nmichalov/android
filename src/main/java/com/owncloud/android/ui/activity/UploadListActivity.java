@@ -59,6 +59,7 @@ import com.owncloud.android.utils.ThemeUtils;
 
 import javax.inject.Inject;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -223,7 +224,7 @@ public class UploadListActivity extends FileActivity {
         uploadIntentFilter.addAction(FileUploader.getUploadsAddedMessage());
         uploadIntentFilter.addAction(FileUploader.getUploadStartMessage());
         uploadIntentFilter.addAction(FileUploader.getUploadFinishMessage());
-        registerReceiver(uploadMessagesReceiver, uploadIntentFilter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(uploadMessagesReceiver, uploadIntentFilter);
 
         Log_OC.v(TAG, "onResume() end");
 
@@ -233,7 +234,7 @@ public class UploadListActivity extends FileActivity {
     protected void onPause() {
         Log_OC.v(TAG, "onPause() start");
         if (uploadMessagesReceiver != null) {
-            unregisterReceiver(uploadMessagesReceiver);
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(uploadMessagesReceiver);
             uploadMessagesReceiver = null;
         }
         super.onPause();
@@ -355,14 +356,7 @@ public class UploadListActivity extends FileActivity {
          */
         @Override
         public void onReceive(Context context, Intent intent) {
-            try {
-                uploadListAdapter.loadUploadItemsFromDb();
-            } finally {
-                if (intent != null) {
-                    removeStickyBroadcast(intent);
-                }
-            }
-
+            uploadListAdapter.loadUploadItemsFromDb();
         }
     }
 }
